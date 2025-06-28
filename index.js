@@ -3,7 +3,7 @@ import { createContext, SourceTextModule, SyntheticModule } from 'node:vm';
 import { isAbsolute, resolve } from 'node:path';
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 
-if (!process.execArgv.includes('--experimental-vm-modules')) {
+if (!process.execArgv.includes('--experimental-vm-modules') && !process.env.NODE_OPTIONS?.includes('--experimental-vm-modules')) {
 	console.error('The --experimental-vm-modules flag is required');
 	process.exit(1);
 }

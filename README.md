@@ -1,3 +1,5 @@
+# cli-cache demo
+
 This is a demo of caching the V8 compile cached data and loading it on next
 run. The point is to test if caching is faster on next run and by how much.
 
@@ -21,4 +23,9 @@ iterations, simply pass in the number of iterations:
 
 To tinker with the loader, run:
 
-	node --experimental-vm-modules ./index.js --cache
+	node --experimental-vm-modules index.js --cache
+
+You can set the `--experimental-vm-modules` via `NODE_OPTIONS` like this:
+
+	NODE_OPTIONS="--experimental-vm-modules" node index.js --cache
+
