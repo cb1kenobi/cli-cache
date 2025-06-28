@@ -15,12 +15,16 @@ export default defineConfig([
 			sourcemap: true
 		},
 		plugins: [
-			commonjs(),
-			nodeResolve({ preferBuiltins: true }),
+			nodeResolve({
+				browser: false,
+				exportConditions: ['node', 'default', 'module', 'import', 'development|production'],
+				preferBuiltins: true
+			}),
 			esbuildMinifyPlugin({
 				minify: true,
 				minifySyntax: true
-			})
+			}),
+			commonjs()
 		]
 	}
 ]);

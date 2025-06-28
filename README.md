@@ -14,6 +14,11 @@ To benchmark, run:
 	pnpm build
 	node bench.js
 
+By default, the benchmark will run 100 iterations. To change the number of
+iterations, simply pass in the number of iterations:
+
+	node bench.js 10
+
 To tinker with the loader, run:
 
 	node --experimental-vm-modules ./index.js --cache

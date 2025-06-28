@@ -26,18 +26,19 @@ async function loadScriptFromFile(file, options) {
 		}
 	}
 
-	// read file contents
 	const source = readSourceFile(file);
 	const context = createContext(options?.global ?? globalThis);
+	const linker = createLinker(context, options);
 	const module = new SourceTextModule(source, {
 		cachedData,
 		context,
 		identifier: file,
-		importModuleDynamically: createLinker(context)
+		importModuleDynamically: linker
 	});
 
-	await module.link(createLinker(context));
+	await module.link(linker);
 
+	// we need to write cached data before we evaluate the module
 	if (options?.cache && cachedData === undefined) {
 		cachedData = module.createCachedData();
 		writeFileSync(cacheFile, cachedData);
@@ -71,7 +72,7 @@ function readSourceFile(file) {
 	return contents;
 }
 
-function createLinker(context) {
+function createLinker(context, options) {
 	return async (specifier, referencingModule) => {
 		// check for `node:fs` or `fs` or `internal/something`
 		const builtin = specifier.startsWith('node:') ? specifier.slice(5) : specifier;
@@ -96,41 +97,12 @@ function createLinker(context) {
 		}
 
 		// create a require function so that we can resolve relative modules
-		const require = Module.createRequire(refPath);
-		let resolvedPath;
 		try {
-			resolvedPath = require.resolve(specifier);
+			const require = Module.createRequire(refPath);
+			const resolvedPath = require.resolve(specifier);
+			return loadScriptFromFile(resolvedPath, options);
 		} catch (err) {
 			throw new Error(`Cannot resolve module: ${specifier} from ${refPath}`);
 		}
-
-		// try to load the module as a CommonJS module
-		let dep;
-		try {
-			dep = require(resolvedPath);
-		} catch {
-			// fallback to reading as ESM
-			const depContents = readSourceFile(resolvedPath);
-			const module = new SourceTextModule(depContents, {
-				context,
-				identifier: resolvedPath,
-			});
-			await module.link(createLinker(context));
-			return module;
-		}
-
-		// if it's a CommonJS module, wrap it
-		if (dep && (!dep.__esModule || !dep.default)) {
-			return new SyntheticModule(['default'], function() {
-				this.setExport('default', dep);
-			}, { context, identifier: resolvedPath });
-		}
-
-		// otherwise, try to load as ESM
-		const depContents = readSourceFile(resolvedPath);
-		return new SourceTextModule(depContents, {
-			context,
-			identifier: resolvedPath,
-		});
 	};
 }

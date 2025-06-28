@@ -1,9 +1,9 @@
 import { spawnSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
+import { readdirSync, rmSync } from 'node:fs';
 
 function bench(iterations, args) {
 	// burn the first run
-	const result = spawnSync(process.execPath, args);
+	const result = spawnSync(process.execPath, args, { stdio: 'ignore' });
 	if (result.status !== 0) {
 		throw new Error(`Failed to run script: ${result.stderr.toString()}`);
 	}
@@ -23,9 +23,17 @@ function bench(iterations, args) {
 }
 
 // delete the cached data
-rmSync('./dist/main.js.cachedData', { force: true });
+for (const file of readdirSync('./dist')) {
+	if (file.endsWith('.cachedData')) {
+		rmSync(`./dist/${file}`, { force: true });
+	}
+}
 
-const iterations = 200;
+const iterations = process.argv[2] ? parseInt(process.argv[2]) : 100;
+if (isNaN(iterations) || iterations < 1) {
+	console.error('Invalid iterations');
+	process.exit(1);
+}
 console.log(`Running ${iterations} iterations...`);
 const noCache = bench(iterations, ['--experimental-vm-modules', './index.js']);
 const withCache = bench(iterations, ['--experimental-vm-modules', './index.js', '--cache']);
