@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import { readdirSync, rmSync } from 'node:fs';
 
+process.env.NODE_OPTIONS = '--experimental-vm-modules --disable-warning=ExperimentalWarning';
+
 function bench(iterations, args) {
 	// burn the first run
 	const result = spawnSync(process.execPath, args, { stdio: 'ignore' });
@@ -35,8 +37,8 @@ if (isNaN(iterations) || iterations < 1) {
 	process.exit(1);
 }
 console.log(`Running ${iterations} iterations...`);
-const noCache = bench(iterations, ['--experimental-vm-modules', './index.js']);
-const withCache = bench(iterations, ['--experimental-vm-modules', './index.js', '--cache']);
+const noCache = bench(iterations, ['./index.js']);
+const withCache = bench(iterations, ['./index.js', '--cache']);
 
 const delta = (1 - withCache / noCache) * 100;
 console.log(`With cache: ${delta.toFixed(2)}% ${(delta > 0 ? 'faster' : 'slower')}`);

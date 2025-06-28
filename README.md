@@ -23,9 +23,5 @@ iterations, simply pass in the number of iterations:
 
 To tinker with the loader, run:
 
-	node --experimental-vm-modules index.js --cache
-
-You can set the `--experimental-vm-modules` via `NODE_OPTIONS` like this:
-
-	NODE_OPTIONS="--experimental-vm-modules" node index.js --cache
+	NODE_OPTIONS="--experimental-vm-modules --disable-warning=ExperimentalWarning" node index.js --cache
 
